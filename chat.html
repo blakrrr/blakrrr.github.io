@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <div class="logo">hatchat</div>
+        <div class="logo">hatchat - 1.0.0</div>
         <nav>
             <ul>
                 <li><a href="index.html">homepage</a></li>
@@ -98,6 +98,7 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const colorInput = document.getElementById('color-input');
         const dndToggle = document.getElementById('dnd-toggle');
+        const notificationSound = new Audio();
         
         // Store user colors - now shared from server
         let userColors = {};
@@ -895,7 +896,7 @@
         // Add this code right after your variable declarations, before any other setup
         //  sound setup
         // Correct the audio file paths
-        const notificationSound = new Audio();
+        
         const mp3Source = document.createElement('source');
         mp3Source.src = 'sounds/notif.mp3'; // Ensure this path is correct
         mp3Source.type = 'audio/mpeg';
