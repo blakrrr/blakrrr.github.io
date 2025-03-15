@@ -223,6 +223,11 @@
                 <button type="button" id="reset-profile" class="form-button">Reset Profile</button>
             </form>
         </div>
+        <h2>Sound Settings</h2>
+        <div class="form-group">
+            <label for="enable-sounds">Enable Typing Sounds:</label>
+            <input type="checkbox" id="enable-sounds">
+        </div>
     </div>
     
     <!-- Confirmation Modal -->
@@ -251,11 +256,14 @@
         const confirmMessageText = document.getElementById('confirm-message');
         const confirmYesBtn = document.getElementById('confirm-yes');
         const confirmNoBtn = document.getElementById('confirm-no');
+        const enableSoundsCheckbox = document.getElementById('enable-sounds');
         
         // Load user settings
         document.addEventListener('DOMContentLoaded', () => {
             const username = localStorage.getItem('chat_username');
             const color = localStorage.getItem('chat_color');
+            const enableSounds = localStorage.getItem('enable_sounds') === 'true';
+            enableSoundsCheckbox.checked = enableSounds;
             
             // If user has saved settings, load them
             if (username) {
@@ -267,6 +275,10 @@
             } else {
                 colorInput.value = "#FFFFFF"; // Default color
             }
+        });
+
+        enableSoundsCheckbox.addEventListener('change', () => {
+            localStorage.setItem('enable_sounds', enableSoundsCheckbox.checked);
         });
         
         // Show success message

@@ -905,6 +905,9 @@
             console.warn('Audio element error message:', e.target.error.message); // Get the error message
         });
 
+        // Add this after the existing variable declarations
+        let enableSounds = localStorage.getItem('enable_sounds') === 'true';
+
         // Set up animal sound effects for typing
         const animalSounds = {};
         const availableLetters = 'abcdefghijklmnopqrstuvwxyz';
@@ -918,6 +921,8 @@
 
         // Add keydown event listener to the chat input to play animal sounds
         chatInput.addEventListener('keydown', function(e) {
+            if (!enableSounds) return; // Check if sounds are enabled
+
             // Only handle regular letter keys (not special keys like Shift, Enter, etc.)
             const key = e.key.toLowerCase();
             
