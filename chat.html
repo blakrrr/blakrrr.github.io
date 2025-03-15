@@ -164,6 +164,22 @@
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000
             });
+
+            socket.on('chat_message', (data) => {
+                console.log('Received message data:', data);
+                displayMessage(data.username, data.message, data.timestamp, data.color, data.image);
+                
+                // If the message contains an image, emit an event to notify server
+                // that everyone should scroll to the bottom
+                if (data.image) {
+                    socket.emit('image_posted');
+                }
+            });
+
+            socket.on('scroll_to_latest', () => {
+                // Force scroll to the bottom when an image is posted by anyone
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
             
             // Setup image upload after socket connection
             setupImageUpload();
@@ -690,24 +706,6 @@
             
             return messageDiv;
         }
-        
-        // Update the chat_message socket handler to notify about image posts
-        socket.on('chat_message', (data) => {
-            console.log('Received message data:', data); // Add this line
-            displayMessage(data.username, data.message, data.timestamp, data.color, data.image);
-            
-            // If the message contains an image, emit an event to notify server
-            // that everyone should scroll to the bottom
-            if (data.image) {
-                socket.emit('image_posted');
-            }
-        });
-        
-        // Add new socket event listener for image notifications
-        socket.on('scroll_to_latest', () => {
-            // Force scroll to the bottom when an image is posted by anyone
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
         
         // Update the send message logic to emit image notification
         chatForm.addEventListener('submit', async function(e) {
