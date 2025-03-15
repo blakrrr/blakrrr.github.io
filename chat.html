@@ -242,16 +242,6 @@
                 connectionStatus.style.color = '#ff6b6b';
             });
             
-            socket.on('chat_message', (data) => {
-                console.log('Received message data:', data); // Add this line
-                displayMessage(data.username, data.message, data.timestamp, data.color, data.image);
-            });
-
-            // Add this to your server-side socket.io code
-            socket.on('image_posted', () => {
-              // Broadcast to all clients to scroll to the bottom
-              io.emit('scroll_to_latest');
-            });
             
             socket.on('chat_history', (data) => {
                 loadingIndicator.style.display = 'none';
@@ -896,10 +886,10 @@
         // Correct the audio file paths
         
         const mp3Source = document.createElement('source');
-        mp3Source.src = 'sounds/notif.mp3'; // Ensure this path is correct
+        mp3Source.src = 'public/sounds/notif.mp3'; // Ensure this path is correct
         mp3Source.type = 'audio/mpeg';
         const wavSource = document.createElement('source');
-        wavSource.src = 'sounds/notif.wav'; // Ensure this path is correct
+        wavSource.src = 'public/sounds/notif.wav'; // Ensure this path is correct
         wavSource.type = 'audio/wav';
         notificationSound.appendChild(mp3Source);
         notificationSound.appendChild(wavSource);
