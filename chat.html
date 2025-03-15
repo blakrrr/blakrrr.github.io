@@ -895,6 +895,7 @@
         // Add this code right after your variable declarations, before any other setup
         //  sound setup
         // Correct the audio file paths
+        const notificationSound = new Audio();
         const mp3Source = document.createElement('source');
         mp3Source.src = 'sounds/notif.mp3'; // Ensure this path is correct
         mp3Source.type = 'audio/mpeg';
