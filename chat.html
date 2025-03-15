@@ -894,30 +894,27 @@
         
         // Add this code right after your variable declarations, before any other setup
         //  sound setup
-        const notificationSound = new Audio();
-        notificationSound.id = 'notificationSound';
+        // Correct the audio file paths
         const mp3Source = document.createElement('source');
-        mp3Source.src = 'sounds/notif.mp3';
+        mp3Source.src = 'sounds/notif.mp3'; // Ensure this path is correct
         mp3Source.type = 'audio/mpeg';
         const wavSource = document.createElement('source');
-        wavSource.src = 'sounds/notif.wav';
+        wavSource.src = 'sounds/notif.wav'; // Ensure this path is correct
         wavSource.type = 'audio/wav';
         notificationSound.appendChild(mp3Source);
         notificationSound.appendChild(wavSource);
-        document.body.appendChild(notificationSound);
-        
-        // Test the sound during page load
+
+        // Properly initialize the audio element and handle errors
         notificationSound.addEventListener('canplaythrough', () => {
             console.log('Notification sound loaded successfully');
         });
-        
-        // Add error handling for audio
+
         notificationSound.addEventListener('error', function(e) {
             console.warn('Notification sound could not be loaded', e);
             console.warn('Audio element error code:', e.target.error.code); // Get the error code
             console.warn('Audio element error message:', e.target.error.message); // Get the error message
         });
-        
+
         // Replace the existing playNotificationSound function with this one
         function playNotificationSound() {
             console.log('playNotificationSound called, DND:', isDndEnabled);
@@ -927,19 +924,19 @@
                     console.warn('Notification sound element not properly initialized');
                     return;
                 }
-                
+
                 // Reset to beginning and set volume
-                notificationSound.currentTime = 1;
+                notificationSound.currentTime = 0; // Change to 0 to start from the beginning
                 notificationSound.volume = 0.5;
-                
+
                 // Play with proper error handling
                 const playPromise = notificationSound.play();
-                
+
                 // Modern browsers return a promise from play()
                 if (playPromise !== undefined) {
                     playPromise.catch(error => {
                         console.warn('Could not play notification sound:', error);
-                        
+
                         // Common issue: browsers require user interaction before playing audio
                         console.log('Note: Browsers often require user interaction before playing audio');
                     });
