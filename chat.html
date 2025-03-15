@@ -832,7 +832,7 @@
                 }
             }
         }
-        
+
         // Display system message in the chat
         function displaySystemMessage(message, timestamp) {
             const messageDiv = createSystemMessageElement(message, timestamp);
@@ -905,6 +905,40 @@
             console.warn('Audio element error message:', e.target.error.message); // Get the error message
         });
 
+        // Set up animal sound effects for typing
+        const animalSounds = {};
+        const availableLetters = 'abcdefghijklmnopqrstuvwxyz';
+
+        // Preload all animal sound effects
+        availableLetters.split('').forEach(letter => {
+            const sound = new Audio(`public/sounds/animal/${letter}.wav`);
+            sound.volume = 0.2; // Lower volume for typing sounds
+            animalSounds[letter] = sound;
+        });
+
+        // Add keydown event listener to the chat input to play animal sounds
+        chatInput.addEventListener('keydown', function(e) {
+            // Only handle regular letter keys (not special keys like Shift, Enter, etc.)
+            const key = e.key.toLowerCase();
+            
+            // Check if it's a letter and we have a sound for it
+            if (availableLetters.includes(key) && animalSounds[key]) {
+                // Reset sound to beginning if it's already playing
+                animalSounds[key].currentTime = 0;
+                
+                // Play the animal sound corresponding to the letter
+                const playPromise = animalSounds[key].play();
+                
+                // Handle play failures silently (common in browsers requiring user interaction)
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        // Don't show errors for typing sounds as they're non-critical
+                        console.debug('Could not play animal sound for letter', key, error);
+                    });
+                }
+            }
+        });
+
         // Replace the existing playNotificationSound function with this one
         function playNotificationSound() {
             console.log('playNotificationSound called, DND:', isDndEnabled);
@@ -933,6 +967,8 @@
                 }
             }
         }
+
+
         
         // Check if the browser supports notifications
         if ('Notification' in window) {
