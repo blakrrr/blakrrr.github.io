@@ -99,7 +99,17 @@
         const colorInput = document.getElementById('color-input');
         const dndToggle = document.getElementById('dnd-toggle');
         const notificationSound = new Audio();
+        const emojiMap = {
+            ':smile:': '🙂',
+            ':heart:': '❤️',
+            ':thumbsup:': '👍',
+            // Add more emojis here
+        };
         
+        function replaceEmojis(text) {
+            return text.replace(/:\w+:/g, match => emojiMap[match] || match);
+        }
+
         // Store user colors - now shared from server
         let userColors = {};
         
@@ -698,27 +708,31 @@
         }
         
         // Update the send message logic to emit image notification
+        // Update the chat form submission event handler to replace emojis before sending the message
         chatForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const message = chatInput.value.trim();
-            
+            let message = chatInput.value.trim();
+
+            // Replace emojis in the message
+            message = replaceEmojis(message);
+
             // If no message and no image, do nothing
             if (!message && !selectedImage) return;
-            
+
             if (socket && !isUploading) {
                 // If there's an image, upload it first
                 if (selectedImage) {
                     isUploading = true;
-                    
+
                     // Show upload indicator
                     const loader = document.createElement('div');
                     loader.className = 'image-loader';
                     chatForm.appendChild(loader);
-                    
+
                     // Create form data for the upload
                     const formData = new FormData();
                     formData.append('image', selectedImage);
-                    
+
                     try {
                         // Upload the image
                         const response = await fetch('https://averrgy-github-io.onrender.com/upload', {
@@ -729,20 +743,20 @@
                                 'X-Requested-With': 'XMLHttpRequest',
                             }
                         });
-                        
+
                         // Check if response is OK
                         if (!response.ok) {
                             throw new Error(`Server returned ${response.status}: ${response.statusText}`);
                         }
-                        
+
                         // Check content type before parsing JSON
                         const contentType = response.headers.get('content-type');
                         if (!contentType || !contentType.includes('application/json')) {
                             throw new Error('Server did not return JSON');
                         }
-                        
+
                         const result = await response.json();
-                        
+
                         if (result.success) {
                             // Convert relative path to absolute URL if needed
                             let imagePath = result.filePath;
@@ -751,7 +765,7 @@
                                 const baseUrl = 'https://averrgy-github-io.onrender.com';
                                 imagePath = baseUrl + (imagePath.startsWith('/') ? '' : '/') + imagePath;
                             }
-                            
+
                             // Send message with image path
                             socket.emit('chat_message', { 
                                 message: message,
@@ -781,7 +795,7 @@
                     // Send text message only
                     socket.emit('chat_message', { message });
                 }
-                
+
                 // Clear input
                 chatInput.value = '';
                 document.getElementById('image-upload').value = '';
@@ -942,6 +956,21 @@
                     });
                 }
             }
+        });
+
+        chatInput.addEventListener('input', function(e) {
+            const cursorPosition = chatInput.selectionStart;
+            const textBeforeCursor = chatInput.value.slice(0, cursorPosition);
+            const textAfterCursor = chatInput.value.slice(cursorPosition);
+
+            // Replace emojis in the text before the cursor
+            const newTextBeforeCursor = replaceEmojis(textBeforeCursor);
+
+            // Update the chat input value
+            chatInput.value = newTextBeforeCursor + textAfterCursor;
+
+            // Restore the cursor position
+            chatInput.selectionStart = chatInput.selectionEnd = newTextBeforeCursor.length;
         });
 
         // Replace the existing playNotificationSound function with this one
