@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hatchat - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+        .chat-button {
+            padding: 1rem 2rem;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+        .chat-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">hatchat - 1.0.0.6</div>
+        <button class="chat-button" onclick="window.location.href='chat.html'">Enter Chat</button>
+    </div>
+</body>
+</html>
