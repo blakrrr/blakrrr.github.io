@@ -3,9 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>JobBox Word Submission</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .connecting {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #history {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .history-item {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .word {
+            color: #4CAF50;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <div class="container">
+        <h1>JobBox Word Submission</h1>
+        
+        <div id="connectionStatus" class="status disconnected">
+            Disconnected
+        </div>
+        
+        <div id="playerSetup">
+            <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+            <button id="connectBtn">Connect to Game</button>
+        </div>
+        
+        <div id="gameArea" style="display: none;">
+            <input type="text" id="wordInput" placeholder="Enter a word" maxlength="30">
+            <button id="submitBtn">Submit Word</button>
+            <div id="history">
+                <div class="history-item">Game history will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const connectionStatus = document.getElementById('connectionStatus');
+        const playerSetup = document.getElementById('playerSetup');
+        const gameArea = document.getElementById('gameArea');
+        const playerNameInput = document.getElementById('playerName');
+        const connectBtn = document.getElementById('connectBtn');
+        const wordInput = document.getElementById('wordInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const history = document.getElementById('history');
+        
+        // WebSocket variables
+        let socket;
+        let connected = false;
+        let playerName = '';
+        
+        // Connect to server
+        connectBtn.addEventListener('click', () => {
+            playerName = playerNameInput.value.trim();
+            
+            if (playerName === '') {
+                alert('Please enter your name');
+                return;
+            }
+            
+            connectToServer();
+        });
+        
+        // Submit word
+        submitBtn.addEventListener('click', () => {
+            const word = wordInput.value.trim();
+            
+            if (word === '') {
+                alert('Please enter a word');
+                return;
+            }
+            
+            if (connected) {
+                socket.send(JSON.stringify({
+                    type: 'submit_word',
+                    word: word
+                }));
+                
+                // Add to local history
+                addToHistory('You', word);
+                
+                // Clear input
+                wordInput.value = '';
+            }
+        });
+        
+        // Connect to WebSocket server
+        function connectToServer() {
+            // Update UI
+            connectionStatus.className = 'status connecting';
+            connectionStatus.textContent = 'Connecting...';
+            
+            // Create WebSocket connection
+            // Change this URL to match your server address!
+            socket = new WebSocket('https://jobbox-jmnk.onrender.com');
+            
+            // Connection opened
+            socket.addEventListener('open', (event) => {
+                connected = true;
+                connectionStatus.className = 'status connected';
+                connectionStatus.textContent = 'Connected to Game Server';
+                
+                // Send player name
+                socket.send(JSON.stringify({
+                    type: 'set_name',
+                    name: playerName
+                }));
+                
+                // Switch UI
+                playerSetup.style.display = 'none';
+                gameArea.style.display = 'block';
+            });
+            
+            // Listen for messages
+            socket.addEventListener('message', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'new_word') {
+                        // Add to history if it's not our own submission
+                        if (data.player !== playerName) {
+                            addToHistory(data.player, data.word);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing message: ', e);
+                }
+            });
+            
+            // Connection closed
+            socket.addEventListener('close', (event) => {
+                connected = false;
+                connectionStatus.className = 'status disconnected';
+                connectionStatus.textContent = 'Disconnected from Server';
+                
+                // Switch UI back
+                playerSetup.style.display = 'block';
+                gameArea.style.display = 'none';
+            });
+            
+            // Connection error
+            socket.addEventListener('error', (event) => {
+                console.error('WebSocket error: ', event);
+                connectionStatus.className = 'status disconnected';
+                connectionStatus.textContent = 'Connection Error';
+            });
+        }
+        
+        // Add item to history
+        function addToHistory(player, word) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `<span class="player-name">${player}</span>: <span class="word">${word}</span>`;
+            
+            // Add to top
+            if (history.firstChild) {
+                history.insertBefore(item, history.firstChild);
+            } else {
+                history.appendChild(item);
+            }
+            
+            // Limit history items
+            if (history.children.length > 10) {
+                history.removeChild(history.lastChild);
+            }
+        }
+        
+        // Allow Enter key to submit
+        wordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitBtn.click();
+            }
+        });
+        
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                connectBtn.click();
+            }
+        });
+    </script>
 </body>
 </html>
